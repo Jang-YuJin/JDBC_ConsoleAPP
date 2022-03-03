@@ -16,17 +16,27 @@ public class EmpDAO {
 	String id = "scott";
 	String pw = "tiger";
 
-	public List<EmpDTO> getList(int page){
-		String sql = "select * from emp_miniprj_view where num between ? and ?";
+	public List<EmpDTO> getList(int page, String searchCol, String search){
+		String sql;
 		int start = 1 + (page - 1) * 5;
 		int end = 5 * page;
 		List<EmpDTO> list = new ArrayList<>();
 		try {
 			Class.forName(driver);
 			Connection con = DriverManager.getConnection(url, id, pw);
-			PreparedStatement pst = con.prepareStatement(sql);
-			pst.setInt(1, start);
-			pst.setInt(2, end);
+			PreparedStatement pst;
+			if("".equals(searchCol)) {
+				sql = "select * from emp_miniprj_view where num between ? and ?";
+				pst = con.prepareStatement(sql);
+				pst.setInt(1, start);
+				pst.setInt(2, end);
+			}else{
+				sql = "select * from emp_miniprj_view where " + searchCol + " like ? "/*and num between ? and ?"*/;
+				pst = con.prepareStatement(sql);
+				pst.setString(1, "%" + search + "%");
+//				pst.setInt(2, start);
+//				pst.setInt(3, end);
+			}
 			ResultSet result = pst.executeQuery();
 			while(result.next()) {
 				EmpDTO empDTO = new EmpDTO();
@@ -44,10 +54,8 @@ public class EmpDAO {
 			pst.close();
 			con.close();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return list;
@@ -60,7 +68,6 @@ public class EmpDAO {
 				Class.forName(driver);
 				Connection con = DriverManager.getConnection(url, id, pw);
 				PreparedStatement pst = con.prepareStatement(sql);
-				result = pst.executeUpdate();
 				pst.setInt(1, empDTO.getEmpno());
 				pst.setString(2, empDTO.getEname());
 				pst.setString(3, empDTO.getJob());
@@ -69,14 +76,12 @@ public class EmpDAO {
 				pst.setInt(6, empDTO.getSal());
 				pst.setInt(7, empDTO.getComm());
 				pst.setInt(8, empDTO.getDeptno());
-				pst.executeUpdate();
+				result = pst.executeUpdate();
 				pst.close();
 				con.close();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		return result;
@@ -89,8 +94,6 @@ public class EmpDAO {
 				Class.forName(driver);
 				Connection con = DriverManager.getConnection(url, id, pw);
 				PreparedStatement pst = con.prepareStatement(sql);
-				result = pst.executeUpdate();
-				pst.setInt(8, empDTO.getEmpno());
 				pst.setString(1, empDTO.getEname());
 				pst.setString(2, empDTO.getJob());
 				pst.setInt(3, empDTO.getMgr());
@@ -98,38 +101,57 @@ public class EmpDAO {
 				pst.setInt(5, empDTO.getSal());
 				pst.setInt(6, empDTO.getComm());
 				pst.setInt(7, empDTO.getDeptno());
-				pst.executeUpdate();
+				pst.setInt(8, empDTO.getEmpno());
+				result = pst.executeUpdate();
 				pst.close();
 				con.close();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		return result;
 	}
 	
 	public int delete(int empno) {
-		String sql = "delete from emp_connectpool where empno = ?";
+		String sql = "delete from emp_miniprj where empno = ?";
 		int result = 0;
 			try {
 				Class.forName(driver);
 				Connection con = DriverManager.getConnection(url, id, pw);
 				PreparedStatement pst = con.prepareStatement(sql);
-				result = pst.executeUpdate();
 				pst.setInt(1, empno);
-				pst.executeUpdate();
+				result = pst.executeUpdate();
 				pst.close();
 				con.close();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		return result;
 	}
+
+	public int getCount() {
+		int cnt = 0;
+		String sql = "select count(empno) as cnt from emp_miniprj";
+		try {
+			Class.forName(driver);
+			Connection con = DriverManager.getConnection(url, id, pw);
+			PreparedStatement pst = con.prepareStatement(sql);
+			ResultSet result = pst.executeQuery();
+			if(result.next()) {
+				cnt = result.getInt("cnt");
+			}
+			result.close();
+			pst.close();
+			con.close();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return cnt;
+	}
+
 }
