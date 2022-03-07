@@ -10,19 +10,19 @@ import empminiprj.service.EmpDAO;
 public class EmpConsole {
 	EmpDAO empDAO;
 	private int page;//현재 페이지
-	private String search;
-	private String searchCol;
+	private String search;//30
+	private String searchCol;//deptno
 	
 	public EmpConsole() {
 		empDAO = new EmpDAO();
 		page = 1;//2
-		search = "";//30
-		searchCol = "";//deptno
+		search = "";
+		searchCol = "";
 	}
 
 	public void printEmpList() {
 		List<EmpDTO> list = empDAO.getList(page, searchCol, search);
-		int cnt = empDAO.getCount();//게시글 개수
+		int cnt = empDAO.getCount(searchCol, search);//게시글 개수
 		int lastPage = cnt % 5 == 0 ? cnt / 5 : cnt / 5 + 1;//마지막 페이지
 		System.out.println("<사원 목록> 총 " + cnt + "명");
 		System.out.println("----------------------------------------------------------------------");
@@ -56,7 +56,7 @@ public class EmpConsole {
 
 	public void moveNextPage() {
 		List<EmpDTO> list = empDAO.getList(page, searchCol, search);
-		int cnt = empDAO.getCount();//게시글 개수
+		int cnt = empDAO.getCount(searchCol, search);//게시글 개수
 		int lastPage = cnt % 5 == 0 ? cnt / 5 : cnt / 5 + 1;//마지막 페이지
 		if (page == lastPage) {
 			System.out.println("***** 다음페이지가 없습니다. *****");
@@ -72,13 +72,13 @@ public class EmpConsole {
 		searchCol = sc.nextLine();
 		System.out.print("검색어> ");
 		search = sc.nextLine();
+		page = 1;
 	}
 
 	public void printAll() {
 		page = 1;
 		search = "";
 		searchCol = "";
-		printEmpList();
 	}
 
 	public void registerEmp() {
@@ -106,6 +106,7 @@ public class EmpConsole {
 		empDTO.setDeptno(sc.nextInt());
 		sc.nextLine();
 		empDAO.insert(empDTO);
+		printAll();
 	}
 
 	public void deleteEmp() {
@@ -114,7 +115,7 @@ public class EmpConsole {
 		int empno = sc.nextInt();
 		sc.nextLine();
 		empDAO.delete(empno);
-		
+		printAll();
 	}
 
 }

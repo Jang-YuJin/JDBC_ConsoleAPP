@@ -31,11 +31,14 @@ public class EmpDAO {
 				pst.setInt(1, start);
 				pst.setInt(2, end);
 			}else{
-				sql = "select * from emp_miniprj_view where " + searchCol + " like ? "/*and num between ? and ?"*/;
+				sql = "select empno, ename, job, mgr, hiredate, sal, comm, deptno from("
+						+ "select empno, ename, job, mgr, hiredate, sal, comm, deptno, dense_rank() over(order by hiredate desc) as rnk "
+						+ "from emp_miniprj_view where " + searchCol + " like ?)"
+						+ "where rnk between ? and ?";
 				pst = con.prepareStatement(sql);
 				pst.setString(1, "%" + search + "%");
-//				pst.setInt(2, start);
-//				pst.setInt(3, end);
+				pst.setInt(2, start);
+				pst.setInt(3, end);
 			}
 			ResultSet result = pst.executeQuery();
 			while(result.next()) {
@@ -132,13 +135,21 @@ public class EmpDAO {
 		return result;
 	}
 
-	public int getCount() {
+	public int getCount(String searchCol, String search) {
 		int cnt = 0;
-		String sql = "select count(empno) as cnt from emp_miniprj";
+		String sql;
 		try {
 			Class.forName(driver);
 			Connection con = DriverManager.getConnection(url, id, pw);
-			PreparedStatement pst = con.prepareStatement(sql);
+			PreparedStatement pst;
+			if("".equals(searchCol)) {
+				sql = "select count(empno) as cnt from emp_miniprj";
+				pst = con.prepareStatement(sql);
+			}else {
+				sql = "select count(empno) as cnt from emp_miniprj_view where " + searchCol + " like ? ";
+				pst = con.prepareStatement(sql);
+				pst.setString(1, search);
+			}
 			ResultSet result = pst.executeQuery();
 			if(result.next()) {
 				cnt = result.getInt("cnt");
